@@ -1,0 +1,135 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layuiAdmin 管理员 iframe 框</title>
+    {include file="layout/_meta" /}
+</head>
+<body>
+
+<div class="layui-form" id="form-admin" style="padding: 20px 30px 0 0;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">管理员姓名</label>
+        <div class="layui-input-inline">
+            <input type="text"  v-model="model.admin_name" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">管理员账号</label>
+        <div class="layui-input-inline">
+            <input type="text" v-model="model.username" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">初始密码</label>
+        <div class="layui-input-inline">
+            <input type="password" v-model="model.password" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">确认密码</label>
+        <div class="layui-input-inline">
+            <input type="password" v-model="model.repassword" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">是否启用</label>
+        <div class="layui-input-inline">
+            <input type="checkbox" v-model="model.status" lay-filter="switch" lay-skin="switch"  lay-text="启用|禁用">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">邮箱</label>
+        <div class="layui-input-inline">
+            <input type="text" v-model="model.email" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">角色</label>
+        <div class="layui-input-inline">
+            <select v-model="model.role" lay-filter="pid">
+                <option value="0">请选择角色</option>
+                <option v-for="option in roles" v-bind:value="option.id">{{option.title}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline">
+            <button class="layui-btn" v-on:click="doSubmit()">确认</button>
+        </div>
+    </div>
+
+</div>
+
+{include file="layout/_footer" /}
+<script type="text/javascript">
+    var model = {
+        status:1,
+        role:0
+    };
+
+    var store_model = new Vue({
+        el: "#form-admin",
+        data: {
+            model:model,
+            roles: []
+        },
+        mounted: function () {
+            this.initData();
+        },
+        methods: {
+
+            //初始化//选择框选择
+            initData:function () {
+                util.get("{:url('admin/add')}",function (data) {
+                    store_model.roles = data;
+
+                    //只有执行了这一步，部分表单元素才会自动修饰成功
+                    layui.use('form', function(){
+                        var form = layui.form;
+                        form.render('checkbox','switch');
+
+                        form.render('select','pid');
+
+                        //监听选择框
+                        form.on('switch(switch)', function(data){
+                            store_model.model.status =(data.elem.checked==true)?1:0;
+                        });
+
+                        form.on('select(pid)', function(data){
+                            store_model.model.role=data.value;
+                        });
+
+                    });
+
+                });
+            },
+
+            doSubmit: function() {
+                $.ajax({
+                    type:'post',
+                    data:this.model,
+                    url:"{:url('admin/add')}",
+                    cache: false,
+                    dataType:'json',
+                    success:function(data){
+                        if(data.status==true){
+                            layer.msg(data.message,function () {
+                                parent.location.href="{:url('admin/index')}";
+                                //layer_close();
+                            })
+                        }else {
+                            layer.msg(data.message);
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+</script>
+</body>
+</html>

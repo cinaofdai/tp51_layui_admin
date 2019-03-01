@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layuiAdmin 后台管理员</title>
+    {include file="layout/_meta" /}
+</head>
+<body>
+
+<div  class="layui-fluid">
+    <div id="table" class="layui-card">
+        <div class="layui-form layui-card-header layuiadmin-card-header-auto">
+            <div class="layui-form-item">
+                <div class="layui-inline">
+                    <label class="layui-form-label">规则标识</label>
+                    <div class="layui-input-block">
+                        <input type="text" v-model="search.name" v-on:keyup.enter="btnSearch()" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <label class="layui-form-label">权限名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" v-model="search.title" v-on:keyup.enter="btnSearch()" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-inline">
+                    <button class="layui-btn layuiadmin-btn-admin" v-on:click="btnSearch()">
+                        <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="layui-card-body">
+            <div style="padding-bottom: 10px;">
+                <button class="layui-btn layuiadmin-btn-admin" v-on:click="adminAdd()">添加</button>
+            </div>
+
+            <table cellspacing="0" cellpadding="0" border="0" class="layui-table">
+                <thead>
+                <tr>
+                    <th >
+                        <div class="layui-table-cell"><span>ID</span></div>
+                    </th>
+                    <th >
+                        <div class="layui-table-cell"><span>规则标识</span></div>
+                    </th>
+                    <th >
+                        <div class="layui-table-cell"><span>权限名称</span></div>
+                    </th>
+                    <th >
+                        <div class="layui-table-cell"><span>附加条件</span></div>
+                    </th>
+                    <th >
+                        <div class="layui-table-cell"><span>所属模块</span></div>
+                    </th>
+                    <th >
+                        <div class="layui-table-cell"><span>状态</span></div>
+                    </th>
+                    <th >
+                        <div class="layui-table-cell"><span>操作</span></div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="(item,index)  in lists">
+                    <td >
+                        <div class="layui-table-cell">{{item.id}}</div>
+                    </td>
+                    <td >
+                        <div class="layui-table-cell">{{item.name}}</div>
+                    </td>
+                    <td >
+                        <div class="layui-table-cell">{{item.title}}</div>
+                    </td>
+                    <td >
+                        <div class="layui-table-cell">{{item.condition}}</div>
+                    </td>
+                    <td >
+                        <div class="layui-table-cell">{{item.menu}}</div>
+                    </td>
+                    <td >
+                        <div class="layui-table-cell">
+                            <button v-if="item.status==1" class="layui-btn layui-btn-xs">已启用</button>
+                            <button v-else class="layui-btn layui-btn-primary layui-btn-xs">已停用</button>
+                        </div>
+                    </td>
+                    <td  align="center" class="layui-table-col-special">
+                        <div class="layui-table-cell">
+                            <a  v-on:click="adminEdit(item)" class="layui-btn layui-btn-normal layui-btn-xs">
+                                <i class="layui-icon layui-icon-edit"></i>编辑</a>
+                            <a class="layui-btn layui-btn-danger layui-btn-xs" v-bind:data-id="item.id" v-on:click="btnDel($event,index)">
+                                <i class="layui-icon layui-icon-delete"></i>删除</a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <!--vueJS分页---start-->
+            <div class="pagination">
+                <ul>
+                    <li v-if="current>1"><a v-on:click="current--,pageClick()">上一页</a></li>
+                    <li v-if="current==1"><a class="banclick">上一页</a></li>
+                    <li v-for="index in indexs"  v-bind:class="{ 'active': current == index}">
+                        <a v-on:click="btnClick(index)">{{ index }}</a>
+                    </li>
+                    <li v-if="current!=total"><a v-on:click="current++,pageClick()">下一页</a></li>
+                    <li v-if="current == total"><a class="banclick">下一页</a></li>
+                    <li><a>共<i>{{total}}</i>页</a></li>
+                </ul>
+            </div>
+            <!--vueJS分页---end-->
+        </div>
+    </div>
+</div>
+{include file="layout/_footer" /}
+<script type="text/javascript">
+    var models = {
+        count:0,
+        lists: [],//表格数据
+        total:3, //总页数
+        current:1,  //当前页码
+        size:15,
+        search:{}   //搜索框
+    };
+
+    var app_model = new Vue({
+        el: "#table",
+        data: models,
+        mounted: function () {
+        },
+        methods: {
+            //上一页,下一页翻页
+            pageClick: function(){
+                initTable("{:url('auth/index')}",this.current,this.search);
+            },
+
+            //点击页码
+            btnClick: function(data){
+                if(data != this.current){
+                    this.current = data;
+                    initTable("{:url('auth/index')}",this.current,this.search);
+                }
+            },
+
+            //删除按钮
+            btnDel:function (event,index) {
+                var _this = $(event.currentTarget);
+                var id = _this.attr('data-id');
+                admin_del("{:url('auth/remove')}",_this,id,index);
+            },
+
+            //编辑
+            adminEdit:function (item) {
+                var url = "{:url('auth/edit_access')}"+"?id="+item.id;
+                admin_edit('编辑权限节点',url,'800','500');
+            },
+
+            //添加
+            adminAdd:function () {
+                var url = "{:url('auth/add_access')}";
+                admin_add('添加权限节点',url,'425','500');
+            },
+
+            //搜索
+            btnSearch:function () {
+                initTable("{:url('auth/index')}",1,this.search);
+            }
+        },
+        computed: {
+            indexs: function () {
+                var left = 1;
+                var right = this.total;
+                var ar = [];
+                if (this.total >= 5) {
+                    if (this.current > 3 && this.current < this.total - 2) {
+                        left = this.current - 2;
+                        right =left + 4;
+                    } else {
+                        if (this.current <= 3) {
+                            left = 1;
+                            right = 5;
+                        } else {
+                            right = this.total;
+                            left = this.total - 4;
+                        }
+                    }
+                }
+                while (left <= right) {
+                    ar.push(left);
+                    left++;
+                }
+                return ar
+            }
+        }
+
+    });
+
+    //初始化数据表格
+    initTable("{:url('auth/index')}");
+</script>
+</body>
+</html>

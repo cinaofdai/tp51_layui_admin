@@ -1,0 +1,167 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>layuiAdmin 文章管理 iframe 框</title>
+    {include file="layout/_meta" /}
+</head>
+<body>
+
+<div class="layui-form" id="form-admin" style="padding: 10px 20px 0 0;">
+    <div class="layui-form-item">
+        <label class="layui-form-label">文章标题</label>
+        <div class="layui-input-inline">
+            <input type="text" v-model="model.title"   class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">发布人</label>
+        <div class="layui-input-inline">
+            <input type="text" v-model="model.author" class="layui-input">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">文章内容</label>
+        <div class="layui-input-inline">
+            <textarea v-model="model.content" style="width: 400px; height: 150px;" class="layui-textarea"></textarea>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">标签</label>
+        <div class="layui-input-inline">
+            <select v-model="model.cid" lay-filter="pid">
+                <option value="0">请选择标签</option>
+                <option v-for="option in cate" v-bind:value="option.id">{{option._name}}</option>
+            </select>
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label">发布状态</label>
+        <div class="layui-input-inline">
+            <input type="checkbox"  v-model="model.is_show" lay-filter="switch" lay-skin="switch"  lay-text="已发布|待修改">
+        </div>
+    </div>
+    <div class="layui-form-item">
+        <label class="layui-form-label"></label>
+        <div class="layui-input-inline">
+            <button class="layui-btn" v-on:click="doSubmit()">确认</button>
+        </div>
+    </div>
+</div>
+
+{include file="layout/_footer" /}
+<script type="text/javascript">
+    //var _Ueditor;
+
+    var model = {
+        cate:[],   //菜单模块
+        model:{}
+    };
+
+    var store_model = new Vue({
+        el: "#form-admin",
+        data:model,
+        mounted: function () {
+            //this.initUEditor();
+            //this.initImage();
+            this.initData();
+        },
+        methods: {
+            //初始化//选择框选择
+            initData:function () {
+                util.get("{:url('article/edit')}",{id:"{$edit_id}"},function (data) {
+                    store_model.model = data.model;
+                    store_model.cate = data.cate; //全部分类
+
+
+                    //只有执行了这一步，部分表单元素才会自动修饰成功
+                    layui.use('form', function(){
+                        var form = layui.form;
+                        form.render('select','pid');
+                        form.render('checkbox','switch');
+
+                        //监听选择框
+                        form.on('select(pid)', function(data){
+                            store_model.model.cid=data.value;
+                        });
+
+                        form.on('switch(switch)', function(data){
+                            store_model.model.is_show =(data.elem.checked==true)?1:0;
+                        });
+                    });
+                })
+
+            },
+
+
+            //初始化百度编辑器上传图片
+            /*initImage:function(event){
+                _editor = UE.getEditor('image');
+                _editor.ready(function () {
+                    //设置编辑器不可用
+                    //_editor.setDisabled();
+                    //隐藏编辑器，因为不会用到这个编辑器实例，所以要隐藏
+                    _editor.hide();
+                    //侦听图片上传
+                    _editor.addListener('beforeInsertImage', function (t, arg) {
+                        //console.log( arg);
+                        store_model.model.preview = arg[0].src;
+                        //图片预览
+                        //$("#form-input-logo").attr("src", arg[0].src);
+                    })
+                });
+            },*/
+
+            //上传图片点击事件弹出图片框
+/*            upImage:function () {
+                //console.log(_editor);
+                var myImage = _editor.getDialog("insertimage");
+                myImage.open();
+            },
+
+            初始化百度编辑器
+            initUEditor:function () {
+                _Ueditor = UE.getEditor('container');
+            },*/
+
+            doSubmit: function() {
+                //获取内容
+                //this.model.content = _Ueditor.getContent();
+                $.ajax({
+                    type:'post',
+                    data:this.model,
+                    url:"{:url('article/edit')}",
+                    cache: false,
+                    dataType:'json',
+                    success:function(data){
+                        if(data.status==true){
+                            layer.msg(data.message,function () {
+                                parent.location.href="{:url('article/index')}";
+                                //layer_close();
+                            })
+                        }else {
+                            layer.msg(data.message);
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+
+/*
+    _Ueditor.ready(function () {
+        util.get("{:url('article/edit')}",{id:"{$edit_id}"},function (data) {
+            store_model.model = data.model;
+            store_model.cate = data.cate; //全部分类
+            _Ueditor.setContent(store_model.model.content);
+        })
+    });
+*/
+
+
+</script>
+</body>
+</html>

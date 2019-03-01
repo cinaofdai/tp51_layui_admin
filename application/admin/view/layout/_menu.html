@@ -1,0 +1,43 @@
+<aside class="Hui-aside">
+	<div class="menu_dropdown bk_2">
+		{volist name="menus_lists" id="menus"}
+			<dl>
+				<dt><i class="Hui-iconfont {$menus.icon}"></i> {$menus.title}<i class="Hui-iconfont menu_dropdown-arrow">&#xe6d5;</i></dt>
+				<dd>
+					<ul>
+						{volist name="menus['_data']" id="menu"}
+							<li><a data-href="{$menu.link}" data-title="{$menu.title}" href="javascript:void(0)"> {$menu.title}</a></li>
+						{/volist}
+					</ul>
+				</dd>
+			</dl>
+		{/volist}
+	</div>
+</aside>
+<div class="dislpayArrow hidden-xs"><a class="pngfix" href="javascript:void(0);" onClick="displaynavbar(this)"></a></div>
+
+<!--------------------------------------------------------------->
+
+<div class="layui-side layui-side-menu">
+	<div class="layui-side-scroll">
+		<div class="layui-logo" lay-href="{:url('index/console')}">
+			<span>layuiAdmin</span>
+		</div>
+
+		<ul class="layui-nav layui-nav-tree" lay-shrink="all" id="LAY-system-side-menu" lay-filter="layadmin-system-side-menu">
+			{volist name="menus_lists" id="menus"}
+				 <li class="layui-nav-item">
+					<a href="javascript:;" lay-tips="{$menus.title}" lay-direction="2">
+						<i class="layui-icon {$menus.icon}"></i>
+						<cite>{$menus.title}</cite>
+					</a>
+					<dl class="layui-nav-child">
+						{volist name="menus['_data']" id="menu"}
+						<dd><a lay-href="{$menu.link}">{$menu.title}</a></dd>
+						{/volist}
+					</dl>
+				</li>
+			{/volist}
+		</ul>
+	</div>
+</div>
